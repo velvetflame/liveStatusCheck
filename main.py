@@ -6,7 +6,7 @@ import time
 
 def w_rid():  # 每次请求生成w_rid参数
     wts = str(int(time.time()))  # 时间戳
-    c = "72136226c6a73669787ee4fd02a74c27"  # 尾部固定值，根据imgKey,subKey计算得出
+    c = "ce6d4422ece814c69d256fa9617e4acc"  # 尾部加盐，根据imgKey,subKey混淆得出
     b = "mid=" + uid + "&platform=web&token=&web_location=1550101"
     a = b + "&wts=" + wts + c  # mid + platform + token + web_location + 时间戳wts + 一个固定值
     return hashlib.md5(a.encode(encoding='utf-8')).hexdigest()
