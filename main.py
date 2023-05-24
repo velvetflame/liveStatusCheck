@@ -2,13 +2,20 @@ import hashlib
 import json
 import requests
 import time
+import salt_gen
 
+time_start = time.perf_counter()
+print(time_start)
+salt = salt_gen.generator()  # 首次启动获取盐值
 
 def w_rid():  # 每次请求生成w_rid参数
+    global time_start, salt
+    if (time.perf_counter() - time_start) > 24 * 60 * 60:  # 一天更新一次salt
+        time_start = time.perf_counter()
+        salt = salt_gen.generator()  # 尾部加盐，根据imgKey,subKey混淆得出
     wts = str(int(time.time()))  # 时间戳
-    c = "ce6d4422ece814c69d256fa9617e4acc"  # 尾部加盐，根据imgKey,subKey混淆得出
     b = "mid=" + uid + "&platform=web&token=&web_location=1550101"
-    a = b + "&wts=" + wts + c  # mid + platform + token + web_location + 时间戳wts + 一个固定值
+    a = b + "&wts=" + wts + salt  # mid + platform + token + web_location + 时间戳wts + 一个固定值
     return hashlib.md5(a.encode(encoding='utf-8')).hexdigest()
 
 
