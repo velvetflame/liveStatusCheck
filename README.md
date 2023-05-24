@@ -3,35 +3,42 @@
 基于B站最新风控检测规则bypass的Python Demo
 > 演示API（用户主页信息）：https://api.bilibili.com/x/space/wbi/acc/info
 
-## Params
+## 公共参数
 
-| Key          |             Example              |    Description |
-|--------------|:--------------------------------:|---------------:|
-| mid          |              477792              |          用户uid |
-| token        |                                  |                |
-| platform     |               web                |           平台标识 |
-| web_location |             1550101              |                |
-| w_rid        | 16507ee8e9fc2aaOfd9b292a1eebd08f | Params MD5 校验串 |
-| wts          |            1684575140            |            时间戳 |
+| Key          | Type   | Example                          | Description    |
+|--------------|--------|:---------------------------------|:---------------|
+| mid          | int    | 477792                           | 用户uid          |
+| token        |        |                                  | 目前留空           |
+| platform     | string | web                              | 平台标识           |
+| web_location | int    | 1550101                          |                |
+| w_rid        | int    | 16507ee8e9fc2aaOfd9b292a1eebd08f | Params MD5 校验串 |
+| wts          | int    | 1684575140                       | 时间戳            |
 
-## w_rid
-
-bypass的重点是w_rid，目前如果不带此参数请求会随机返回403
+## w_rid逆向
 
 **w_rid是所有请求参数拼接成串加盐后的MD5_32加密结果**
 
-目前演示API的Salt值是72136226c6a73669787ee4fd02a74c27（已变化），由space.js中webImgKey和webSubKey两段MD5处理得来，不同的bili-api盐值不同，注意对应处理（后文有详细讲解）
+目前接口bypass的重点是w_rid，不带此参数返回错误
+`{"code":-403,"message":"访问权限不足","ttl":1}`
+
+### 签名机制
+
+除`w_rid`外所有参数拼合(&)加32位盐值，生成MD5_32字符串
+
+### 参考demo (python3)
+
+演示API的Salt值是72136226c6a73669787ee4fd02a74c27（已变化），由space.js中webImgKey和webSubKey两段MD5处理得来，不同的bili-api盐值不同，注意对应处理（后文有详细讲解）
 
 ```Python
 import time, hashlib
 
 wts = str(int(time.time()))  # 时间戳
 salt = "72136226c6a73669787ee4fd02a74c27"  # API盐值
-string = "mid=477792&platform=web&token=&web_location=1550101" + "&wts=" + wts + salt  # 拼合串
+string = "mid=477792&platform=web&token=&web_location=1550101" + "&wts=" + wts + salt  # 构建待加密字符串
 w_rid = hashlib.md5(str.encode(encoding='utf-8')).hexdigest()
 ```
 
-## Salt Value
+## w_rid盐值机制
 
 **w_rid的MD5盐值是从localStorage中的`wbi_img_url`和`wbi_sub_url`两部分中提取、拼接、混淆得出**
 
